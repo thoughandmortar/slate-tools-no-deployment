@@ -63,11 +63,6 @@ Promise.all([
 
     assetServer.compiler.hooks.compile.tap('CLI', onCompilerCompile);
     assetServer.compiler.hooks.done.tap('CLI', onCompilerDone);
-    assetServer.client.hooks.beforeSync.tapPromise('CLI', onClientBeforeSync);
-    assetServer.client.hooks.syncSkipped.tap('CLI', onClientSyncSkipped);
-    assetServer.client.hooks.sync.tap('CLI', onClientSync);
-    assetServer.client.hooks.syncDone.tap('CLI', onClientSyncDone);
-    assetServer.client.hooks.afterSync.tap('CLI', onClientAfterSync);
 
     return assetServer.start();
   })
