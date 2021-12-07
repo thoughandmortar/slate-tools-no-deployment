@@ -63,8 +63,9 @@ Promise.all([
 
     assetServer.compiler.hooks.compile.tap('CLI', onCompilerCompile);
     assetServer.compiler.hooks.done.tap('CLI', onCompilerDone);
+    assetServer.client.hooks.beforeSync.tapPromise('CLI', onClientBeforeSync);
     assetServer.client.hooks.syncSkipped.tap('CLI', onClientSyncSkipped);
-
+    
     return assetServer.start();
   })
   .catch((error) => {
@@ -163,24 +164,15 @@ async function onClientBeforeSync(files) {
 }
 
 function onClientSyncSkipped() {
-
   event('slate-tools:start:skip-first-deploy', {
     version: packageJson.version,
   });
-
-  console.log(
-    `\n${chalk.blue(
-      figures.info,
-    )}  Skipping first deployment because --skipFirstDeploy flag`,
-  );
 }
 
 function onClientSync() {
-  event('slate-tools:start:sync-start', {version: packageJson.version});
 }
 
 function onClientSyncDone() {
-  event('slate-tools:start:sync-end', {version: packageJson.version});
 
   process.stdout.write(consoleControl.previousLine(4));
   process.stdout.write(consoleControl.eraseData());
