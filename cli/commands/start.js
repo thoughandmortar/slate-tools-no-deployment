@@ -63,6 +63,11 @@ Promise.all([
 
     assetServer.compiler.hooks.compile.tap('CLI', onCompilerCompile);
     assetServer.compiler.hooks.done.tap('CLI', onCompilerDone);
+    assetServer.client.hooks.beforeSync.tapPromise('CLI', onClientBeforeSync);
+    assetServer.client.hooks.syncSkipped.tap('CLI', onClientSyncSkipped);
+    assetServer.client.hooks.sync.tap('CLI', onClientSync);
+    assetServer.client.hooks.syncDone.tap('CLI', onClientSyncDone);
+    assetServer.client.hooks.afterSync.tap('CLI', onClientAfterSync);
 
     return assetServer.start();
   })
@@ -101,12 +106,6 @@ function onCompilerDone(stats) {
   }
 
   if (statsJson.warnings.length) {
-    event('slate-tools:start:compile-warnings', {
-      duration: statsJson.time,
-      warnings: statsJson.warnings,
-      version: packageJson.version,
-    });
-
     console.log(chalk.yellow('Compiled with warnings.\n'));
 
     statsJson.warnings.forEach((message) => {
@@ -115,11 +114,6 @@ function onCompilerDone(stats) {
   }
 
   if (!statsJson.errors.length && !statsJson.warnings.length) {
-    event('slate-tools:start:compile-success', {
-      duration: statsJson.time,
-      version: packageJson.version,
-    });
-
     console.log(
       `${chalk.green(figures.tick)}  Compiled successfully in ${statsJson.time /
         1000}s!`,
@@ -128,6 +122,8 @@ function onCompilerDone(stats) {
 }
 
 async function onClientBeforeSync(files) {
+  return;
+
   if (firstSync && argv.skipFirstDeploy) {
     assetServer.skipDeploy = true;
 
@@ -164,28 +160,17 @@ async function onClientBeforeSync(files) {
 function onClientSyncSkipped() {
   if (!(firstSync && argv.skipFirstDeploy)) return;
 
-  event('slate-tools:start:skip-first-deploy', {
-    version: packageJson.version,
-  });
-
   console.log(
     `\n${chalk.blue(
       figures.info,
-    )}  Skipping first deployment because --skipFirstDeploy flag`,
+    )}  Skipping deployment - use Shopify CLI to deploy (see package.json commands)`,
   );
 }
 
 function onClientSync() {
-  event('slate-tools:start:sync-start', {version: packageJson.version});
 }
 
 function onClientSyncDone() {
-  event('slate-tools:start:sync-end', {version: packageJson.version});
-
-  process.stdout.write(consoleControl.previousLine(4));
-  process.stdout.write(consoleControl.eraseData());
-
-  console.log(`\n${chalk.green(figures.tick)}  Files uploaded successfully!`);
 }
 
 async function onClientAfterSync() {
